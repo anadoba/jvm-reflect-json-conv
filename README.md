@@ -5,7 +5,8 @@ Right now it supports:
 - primitive fields
 - private fields
 - collections
-- arrays
+- arrays 
+
 Unfortunately, it accepts only primitive type collections, without any nested complex objects.
 
 By running tests you verify my converter's output JSON string vs org.json library-generated result.
