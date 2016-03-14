@@ -19,14 +19,20 @@ public class AppTest
     /**
      * Actual testing
      */
-    public void testClassWithPrimitives() {
-        ClassWithPrimitives cl = new ClassWithPrimitives();
-        JSONObject myJson = new PojoConverter(cl).convertToJson();
-        JSONObject correctJson = new JSONObject(cl);
+    private void helperForTesting(Object obj) {
+        JSONObject myJson = new PojoConverter(obj).convertToJson();
+        JSONObject correctJson = new JSONObject(obj);
+        System.out.println("JSON created 'by hand': \t" + myJson);
+        System.out.println("JSON created by library: \t" + correctJson);
         assertEquals(myJson.toString(), correctJson.toString());
     }
 
-    public void testPrimitive() {
-        assertFalse(false);
+    public void testClassWithPrimitives() {
+        helperForTesting(new ClassWithPrimitives());
     }
+
+    public void testClassWithCollections() {
+        helperForTesting(new ClassWithLists());
+    }
+
 }

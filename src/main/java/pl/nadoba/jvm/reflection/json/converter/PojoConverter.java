@@ -1,32 +1,29 @@
 package pl.nadoba.jvm.reflection.json.converter;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 
 public class PojoConverter {
 
     private Object pojoObj;
-    private String objName = "";
 
     public PojoConverter(Object pojoObj) {
         this.pojoObj = pojoObj;
-    }
-
-    public PojoConverter(Object pojoObj, String name) {
-        this.pojoObj = pojoObj;
-        this.objName = name;
     }
 
     public JSONObject convertToJson() {
         JSONObject json = new JSONObject();
 
         if (isPrimitive(pojoObj.getClass())) {
-            return new JSONObject().put(objName, pojoObj);
+            return new JSONObject().put(pojoObj.getClass().getSimpleName(), pojoObj);
         }
 
         for (Field field : pojoObj.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
             String key = field.getName();
             Object newObj = null;
             try {
@@ -44,17 +41,18 @@ public class PojoConverter {
         JSONObject json = new JSONObject();
 
         if (isPrimitive(field.getType())) {
-            System.out.println("Primitive");
             return convertPrimitiveField(field);
         } else if (Collection.class.isAssignableFrom(field.getType())) {
-            Collection<Object> collection = (Collection<Object>) field.get(pojoObj);
-            for (Object obj : collection) {
-                for (Field f : obj.getClass().getDeclaredFields()) {
-                    json.append(f.getName(), convertPrimitiveField(f));
-                }
+            ParameterizedType fieldGenericType = (ParameterizedType) field.getGenericType();
+            Class<?> fieldTypeParameterType = (Class<?>) fieldGenericType.getActualTypeArguments()[0];
+            if (isPrimitive(fieldTypeParameterType)) {
+                Collection<Object> collection = (Collection<Object>) field.get(pojoObj);
+                return new JSONArray(collection);
             }
+        } else if (field.getType().isArray()) {
+            Object collection = field.get(pojoObj);
+            return new JSONArray(collection);
         } else {
-            System.out.println("UNKNOWN");
             json.put(field.getName(), field.get(pojoObj));
         }
 
@@ -82,6 +80,11 @@ public class PojoConverter {
 
     private boolean isPrimitive(Class<?> clazz) {
         return clazz.isPrimitive() ||
+                clazz.isAssignableFrom(Integer.class) ||
+                clazz.isAssignableFrom(Short.class) ||
+                clazz.isAssignableFrom(Long.class) ||
+                clazz.isAssignableFrom(Double.class) ||
+                clazz.isAssignableFrom(Float.class) ||
                 clazz.isAssignableFrom(String.class);
     }
 

@@ -6,6 +6,7 @@ public class ClassWithPrimitives {
     public boolean male = true;
     private double height = 300.2;
 
+    // getters added in order to enable org.json library to generate JSON automatically from this class
     public double getHeight() {
         return height;
     }
